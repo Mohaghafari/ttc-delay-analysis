@@ -1,0 +1,12 @@
+route_id,route_name,route_type,avg_fare,is_active,created_at
+1,Yonge-University,Subway,3.25,True,2025-10-01 22:34:36.530913
+2,Bloor-Danforth,Subway,3.25,True,2025-10-01 22:34:36.530913
+5,Yonge,Bus,3.25,True,2025-10-01 22:34:36.530913
+6,Bay,Bus,3.25,True,2025-10-01 22:34:36.530913
+29,Dufferin,Bus,3.25,True,2025-10-01 22:34:36.530913
+32,Eglinton West,Bus,3.25,True,2025-10-01 22:34:36.530913
+36,Finch West,Bus,3.25,True,2025-10-01 22:34:36.530913
+501,Queen,Streetcar,3.25,True,2025-10-01 22:34:36.530913
+504,King,Streetcar,3.25,True,2025-10-01 22:34:36.530913
+505,Dundas,Streetcar,3.25,True,2025-10-01 22:34:36.530913
+510,Spadina,Streetcar,3.25,True,2025-10-01 22:34:36.530913

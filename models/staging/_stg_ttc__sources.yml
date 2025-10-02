@@ -1,0 +1,14 @@
+version: 2
+
+sources:
+  - name: raw
+    description: Raw TTC data from seeds
+    database: TTC_ANALYTICS
+    schema: raw
+    tables:
+      - name: ttc_trips
+        description: Raw trip-level data from TTC operations
+        
+      - name: route_info
+        description: Reference data for TTC routes
+

@@ -1,0 +1,42 @@
+# dbt
+target/
+dbt_packages/
+logs/
+*.log
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.venv
+*.egg-info/
+dist/
+build/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Environment variables
+.env
+.env.local
+
+# Snowflake
+.snowflake/
+
+# Generated data
+seeds/*.csv
+!seeds/route_info.csv
+
+# Test outputs
+test_failures/
+

@@ -1,0 +1,67 @@
+name: 'ttc_analytics'
+version: '1.0.0'
+config-version: 2
+
+# This setting configures which "profile" dbt uses for this project.
+profile: 'ttc_analytics'
+
+# These configurations specify where dbt should look for different types of files.
+model-paths: ["models"]
+analysis-paths: ["analyses"]
+test-paths: ["tests"]
+seed-paths: ["seeds"]
+macro-paths: ["macros"]
+snapshot-paths: ["snapshots"]
+
+clean-targets:
+  - "target"
+  - "dbt_packages"
+
+# Configuring models
+models:
+  ttc_analytics:
+    # Staging models - raw data ingestion
+    staging:
+      +materialized: view
+      +tags: ["staging"]
+      snowflake_warehouse: compute_wh
+      
+    # Intermediate models - transformations
+    intermediate:
+      +materialized: view
+      +tags: ["intermediate"]
+      snowflake_warehouse: compute_wh
+      
+    # Mart models - final analytics-ready tables
+    marts:
+      +materialized: table
+      +tags: ["marts"]
+      snowflake_warehouse: compute_wh
+      # Clustering optimization for performance
+      +cluster_by: ["trip_date", "route_id"]
+      
+    # Incremental models for efficiency
+    incremental:
+      +materialized: incremental
+      +tags: ["incremental"]
+      +on_schema_change: "append_new_columns"
+      +cluster_by: ["trip_date"]
+      snowflake_warehouse: compute_wh
+
+# Seeds configuration
+seeds:
+  ttc_analytics:
+    +schema: raw
+    +tags: ["seeds"]
+
+# Tests configuration
+tests:
+  ttc_analytics:
+    +store_failures: true
+    +schema: test_failures
+
+vars:
+  # Date range for incremental loads
+  start_date: '2023-01-01'
+  end_date: '2024-12-31'
+

@@ -1,0 +1,80 @@
+version: 2
+
+models:
+  - name: fct_daily_route_performance
+    description: >
+      Daily aggregated performance metrics by route. This table is optimized with
+      clustering on trip_date and route_id for efficient querying.
+    config:
+      cluster_by: ['trip_date', 'route_id']
+    columns:
+      - name: trip_date
+        description: Date of service
+        tests:
+          - not_null
+          
+      - name: route_id
+        description: Route identifier
+        tests:
+          - not_null
+          
+      - name: total_trips
+        description: Total number of trips for the route on this date
+        tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              expression: ">= 0"
+              
+      - name: total_passengers
+        description: Total passengers served
+        tests:
+          - not_null
+          
+      - name: on_time_percentage
+        description: Percentage of trips that were on time
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+              max_value: 100
+              inclusive: true
+
+  - name: fct_hourly_ridership
+    description: >
+      Hourly ridership patterns across all route types. Clustered by date and hour
+      for efficient time-series analysis.
+    config:
+      cluster_by: ['trip_date', 'trip_hour']
+    columns:
+      - name: trip_date
+        description: Date of service
+        tests:
+          - not_null
+          
+      - name: trip_hour
+        description: Hour of day (0-23)
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              min_value: 0
+              max_value: 23
+              inclusive: true
+              
+      - name: total_passengers
+        description: Total passengers in this hour
+        tests:
+          - not_null
+
+  - name: fct_trips_incremental
+    description: >
+      Incremental fact table for trip-level analysis. Only processes new records
+      based on trip_datetime to reduce compute costs.
+    config:
+      materialized: incremental
+      cluster_by: ['trip_date']
+    columns:
+      - name: trip_id
+        description: Unique trip identifier
+        tests:
+          - unique
+          - not_null
+
