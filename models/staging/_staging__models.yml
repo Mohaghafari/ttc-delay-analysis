@@ -1,0 +1,149 @@
+version: 2
+
+models:
+  - name: stg_ttc_subway_delays
+    description: >
+      Standardized subway delay data from Toronto Open Data Portal.
+      Contains real delay incidents including station, cause, duration, and service gaps.
+    columns:
+      - name: delay_id
+        description: Unique identifier for each delay incident
+        tests:
+          - unique
+          - not_null
+          
+      - name: delay_datetime
+        description: Timestamp when the delay occurred
+        tests:
+          - not_null
+          
+      - name: delay_date
+        description: Date of the delay
+        tests:
+          - not_null
+          
+      - name: station
+        description: Station where the delay occurred
+        tests:
+          - not_null
+          
+      - name: delay_code
+        description: TTC delay code indicating cause
+        
+      - name: delay_minutes
+        description: Duration of delay in minutes
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              min_value: 0
+              max_value: 500
+              
+      - name: line
+        description: Subway line (YU, BD, SHP, SRT)
+        tests:
+          - not_null
+          
+      - name: transit_type
+        description: Always 'subway' for this model
+        tests:
+          - accepted_values:
+              values: ['subway']
+
+  - name: stg_ttc_bus_delays
+    description: >
+      Standardized bus delay data from Toronto Open Data Portal.
+      Contains real delay incidents with route, location, cause, and impact metrics.
+    columns:
+      - name: delay_id
+        description: Unique identifier for each delay incident
+        tests:
+          - unique
+          - not_null
+          
+      - name: delay_datetime
+        description: Timestamp when the delay occurred
+        tests:
+          - not_null
+          
+      - name: route_id
+        description: Bus route number
+        tests:
+          - not_null
+          
+      - name: delay_cause
+        description: Incident description
+        
+      - name: delay_minutes
+        description: Duration of delay in minutes
+        tests:
+          - not_null
+          
+      - name: transit_type
+        description: Always 'bus' for this model
+        tests:
+          - accepted_values:
+              values: ['bus']
+
+  - name: stg_ttc_streetcar_delays
+    description: >
+      Standardized streetcar delay data from Toronto Open Data Portal.
+      Contains real delay incidents with line, location, cause, and service gaps.
+    columns:
+      - name: delay_id
+        description: Unique identifier for each delay incident
+        tests:
+          - unique
+          - not_null
+          
+      - name: delay_datetime
+        description: Timestamp when the delay occurred
+        tests:
+          - not_null
+          
+      - name: route_id
+        description: Streetcar line/route number
+        tests:
+          - not_null
+          
+      - name: delay_cause
+        description: Incident description
+        
+      - name: delay_minutes
+        description: Duration of delay in minutes
+        tests:
+          - not_null
+          
+      - name: transit_type
+        description: Always 'streetcar' for this model
+        tests:
+          - accepted_values:
+              values: ['streetcar']
+
+  - name: stg_ttc_all_delays
+    description: >
+      Unified view combining all delay types (subway, bus, streetcar).
+      This model provides a single source for cross-modal delay analysis.
+    columns:
+      - name: delay_id
+        description: Unique identifier across all delay types
+        tests:
+          - unique
+          - not_null
+          
+      - name: delay_datetime
+        description: Timestamp when the delay occurred
+        tests:
+          - not_null
+          
+      - name: transit_type
+        description: Type of transit (subway, bus, streetcar)
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['subway', 'bus', 'streetcar']
+              
+      - name: delay_minutes
+        description: Duration of delay in minutes
+        tests:
+          - not_null
+

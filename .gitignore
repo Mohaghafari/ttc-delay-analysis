@@ -7,13 +7,9 @@ logs/
 # Python
 __pycache__/
 *.py[cod]
-*$py.class
 *.so
 .Python
-env/
 venv/
-ENV/
-.venv
 *.egg-info/
 dist/
 build/
@@ -22,21 +18,18 @@ build/
 .vscode/
 .idea/
 *.swp
-*.swo
-*~
 .DS_Store
 
-# Environment variables
+# Environment
 .env
 .env.local
 
 # Snowflake
 .snowflake/
 
-# Generated data
-seeds/*.csv
-!seeds/route_info.csv
+# Data
+data/raw/*.xlsx
+data/raw/*.xls
 
 # Test outputs
 test_failures/
-

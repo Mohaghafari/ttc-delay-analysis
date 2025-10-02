@@ -1,309 +1,231 @@
-# 🚀 Complete Setup Guide
+# Setup Guide
 
-This guide will walk you through setting up the TTC Analytics project from scratch.
+Instructions for running this project locally or on Snowflake.
 
-## Prerequisites Checklist
+## Prerequisites
 
-- [ ] Python 3.11 or higher installed
-- [ ] Git installed
-- [ ] Snowflake account (free trial available at snowflake.com)
-- [ ] GitHub account
-- [ ] Basic knowledge of SQL and command line
+- Python 3.11 or higher
+- Snowflake account (free trial works fine)
+- Basic SQL knowledge
 
-## Part 1: Local Development Setup (30 minutes)
+## Local Setup
 
-### Step 1: Set Up Snowflake (10 minutes)
-
-1. **Create Snowflake Account**
-   - Go to https://signup.snowflake.com/
-   - Choose AWS as cloud provider
-   - Select region closest to you
-   - Note your account identifier (e.g., `abc12345.us-east-1`)
-
-2. **Create Database and Warehouse**
-   ```sql
-   -- Log into Snowflake and run in a worksheet:
-   
-   USE ROLE ACCOUNTADMIN;
-   
-   -- Create warehouse
-   CREATE WAREHOUSE IF NOT EXISTS COMPUTE_WH
-       WAREHOUSE_SIZE = 'XSMALL'
-       AUTO_SUSPEND = 60
-       AUTO_RESUME = TRUE
-       INITIALLY_SUSPENDED = TRUE;
-   
-   -- Create database
-   CREATE DATABASE IF NOT EXISTS TTC_ANALYTICS;
-   
-   -- Create schemas
-   CREATE SCHEMA IF NOT EXISTS TTC_ANALYTICS.DEV;
-   CREATE SCHEMA IF NOT EXISTS TTC_ANALYTICS.PROD;
-   CREATE SCHEMA IF NOT EXISTS TTC_ANALYTICS.RAW;
-   
-   -- Verify
-   SHOW WAREHOUSES;
-   SHOW DATABASES;
-   ```
-
-3. **Get Your Credentials**
-   - Account: Click your name (top right) → Account → Copy account identifier
-   - Username: Your Snowflake username
-   - Password: Your Snowflake password
-
-### Step 2: Clone and Set Up Project (5 minutes)
+### 1. Clone and Install
 
 ```bash
-# Create project directory
-mkdir -p ~/projects/ttc-optimizer
-cd ~/projects/ttc-optimizer
-
-# Copy all files from "TTC Analysis" folder
-# (The files we just created)
+git clone https://github.com/YOUR_USERNAME/ttc-optimizer.git
+cd ttc-optimizer
 
 # Create virtual environment
 python3 -m venv venv
-source venv/bin/activate  # Mac/Linux
-# OR
-venv\Scripts\activate  # Windows
+source venv/bin/activate  # Windows: venv\Scripts\activate
 
 # Install dependencies
 pip install -r requirements.txt
 ```
 
-### Step 3: Configure dbt Connection (5 minutes)
+### 2. Install dbt Packages
 
 ```bash
-# Create .dbt directory in home folder
-mkdir -p ~/.dbt
+dbt deps
+```
 
-# Copy profiles.yml to .dbt directory
-cp profiles.yml ~/.dbt/profiles.yml
+This installs dbt_utils which we use for some tests.
 
-# Set environment variables (Mac/Linux)
-export SNOWFLAKE_ACCOUNT="your_account.region"
+## Snowflake Setup
+
+### 1. Create Database and Warehouse
+
+Log into Snowflake and run:
+
+```sql
+USE ROLE ACCOUNTADMIN;
+
+-- Create warehouse
+CREATE WAREHOUSE COMPUTE_WH
+  WAREHOUSE_SIZE = 'XSMALL'
+  AUTO_SUSPEND = 60
+  AUTO_RESUME = TRUE;
+
+-- Create database
+CREATE DATABASE TTC_ANALYTICS;
+
+-- Create schemas
+CREATE SCHEMA TTC_ANALYTICS.DEV;
+CREATE SCHEMA TTC_ANALYTICS.PROD;
+CREATE SCHEMA TTC_ANALYTICS.RAW;
+```
+
+### 2. Configure Connection
+
+Option A - Environment variables (recommended):
+
+```bash
+export SNOWFLAKE_ACCOUNT="abc123.us-east-1"
 export SNOWFLAKE_USER="your_username"
 export SNOWFLAKE_PASSWORD="your_password"
 export SNOWFLAKE_ROLE="ACCOUNTADMIN"
+```
 
-# For Windows (PowerShell)
-$env:SNOWFLAKE_ACCOUNT="your_account.region"
-$env:SNOWFLAKE_USER="your_username"
-$env:SNOWFLAKE_PASSWORD="your_password"
-$env:SNOWFLAKE_ROLE="ACCOUNTADMIN"
+Option B - Update `~/.dbt/profiles.yml`:
 
-# Test connection
+```bash
+mkdir -p ~/.dbt
+cp profiles.yml ~/.dbt/profiles.yml
+# Edit ~/.dbt/profiles.yml with your credentials
+```
+
+### 3. Test Connection
+
+```bash
 dbt debug
 ```
 
-### Step 4: Generate and Load Data (10 minutes)
+Should see all green checks if everything is configured correctly.
+
+## Running the Pipeline
+
+### Load Data
 
 ```bash
-# Install dbt packages
-dbt deps
-
-# Generate sample data (1M records for testing)
-python scripts/generate_ttc_data.py 1000000
-
-# This creates:
-# - seeds/ttc_trips.csv (~100MB)
-# - seeds/route_info.csv (~1KB)
-
-# Load seeds into Snowflake
 dbt seed
-
-# Verify in Snowflake
-# SELECT COUNT(*) FROM TTC_ANALYTICS.RAW.TTC_TRIPS;
 ```
 
-### Step 5: Run dbt Models (5 minutes)
+This loads the 100k+ delay records from CSV into Snowflake.
+
+### Run Models
 
 ```bash
 # Run all models
-dbt build --full-refresh
+dbt run
 
-# This will:
-# 1. Run staging models (views)
-# 2. Run intermediate models (views)
-# 3. Run mart models (tables with clustering)
-# 4. Run incremental models
-# 5. Execute all tests
-
-# View documentation
-dbt docs generate
-dbt docs serve
-# Visit http://localhost:8080
+# Or run specific layers
+dbt run --select staging
+dbt run --select marts
 ```
 
-## Part 2: GitHub Setup (15 minutes)
-
-### Step 1: Create GitHub Repository
+### Run Tests
 
 ```bash
-# Initialize git (if not already done)
-git init
-git add .
-git commit -m "Initial commit: TTC Analytics dbt project"
-
-# Create repo on GitHub
-# Go to github.com → New Repository
-# Name: ttc-optimizer
-# Description: Toronto Transit Analytics using dbt on Snowflake
-# Public repository
-
-# Push to GitHub
-git remote add origin https://github.com/YOUR_USERNAME/ttc-optimizer.git
-git branch -M main
-git push -u origin main
+dbt test
 ```
 
-### Step 2: Configure GitHub Secrets
-
-1. Go to your repository on GitHub
-2. Click Settings → Secrets and variables → Actions
-3. Click "New repository secret" and add:
-
-   - `SNOWFLAKE_ACCOUNT`: your_account.region
-   - `SNOWFLAKE_USER`: your_username
-   - `SNOWFLAKE_PASSWORD`: your_password
-   - `SNOWFLAKE_ROLE`: ACCOUNTADMIN
-   - `SNOWFLAKE_WAREHOUSE`: COMPUTE_WH
-   - `SNOWFLAKE_DATABASE`: TTC_ANALYTICS
-
-### Step 3: Test GitHub Actions
+### Run Everything
 
 ```bash
-# Make a small change
-echo "Test CI/CD" >> README.md
-git add README.md
-git commit -m "Test: Trigger CI/CD pipeline"
-git push
-
-# Check GitHub Actions
-# Go to your repo → Actions tab
-# You should see the workflow running
+dbt build
 ```
 
-## Part 3: Generate Full Dataset (Optional)
+This runs seeds, models, and tests in the correct order.
 
-For the full 10M+ records experience:
+## Verify Data Loaded
 
-```bash
-# This takes ~30 minutes and generates ~1GB file
-python scripts/generate_ttc_data.py 10000000
-
-# Load into Snowflake
-dbt seed --full-refresh
-
-# Run models
-dbt build --full-refresh
-```
-
-## Part 4: Verify Everything Works
-
-### Checklist
-
-- [ ] `dbt debug` shows green checkmarks
-- [ ] `dbt seed` loads data successfully
-- [ ] `dbt run` completes without errors
-- [ ] `dbt test` passes all tests
-- [ ] `dbt docs serve` shows documentation
-- [ ] GitHub Actions workflow passes
-- [ ] Can query tables in Snowflake
-
-### Test Queries in Snowflake
+In Snowflake, run:
 
 ```sql
--- Verify data loaded
-SELECT COUNT(*) FROM TTC_ANALYTICS.RAW.TTC_TRIPS;
+USE DATABASE TTC_ANALYTICS;
+USE SCHEMA RAW;
 
--- Check staging model
-SELECT * FROM TTC_ANALYTICS.DEV.STG_TTC_TRIPS LIMIT 10;
+-- Check row counts
+SELECT 'subway' as type, COUNT(*) as rows FROM ttc_subway_delays
+UNION ALL
+SELECT 'streetcar', COUNT(*) FROM ttc_streetcar_delays
+UNION ALL  
+SELECT 'bus', COUNT(*) FROM ttc_bus_delays;
 
--- Check mart model with clustering
-SELECT 
-    trip_date,
-    route_name,
-    total_trips,
-    total_passengers,
-    on_time_percentage
-FROM TTC_ANALYTICS.DEV.FCT_DAILY_ROUTE_PERFORMANCE
-WHERE trip_date = '2024-01-15'
-ORDER BY total_passengers DESC;
-
--- Verify clustering is working
-SHOW TABLES LIKE 'FCT_DAILY_ROUTE_PERFORMANCE';
--- Check CLUSTER_BY column
+-- Should see: subway ~26k, streetcar ~14k, bus ~60k
 ```
+
+## View Documentation
+
+```bash
+dbt docs generate
+dbt docs serve
+```
+
+Open http://localhost:8080 to see data lineage and model docs.
+
+## CI/CD Setup (Optional)
+
+To enable GitHub Actions:
+
+1. Push code to GitHub
+2. Go to Settings → Secrets → Actions
+3. Add these secrets:
+   - SNOWFLAKE_ACCOUNT
+   - SNOWFLAKE_USER
+   - SNOWFLAKE_PASSWORD
+   - SNOWFLAKE_ROLE
+   - SNOWFLAKE_WAREHOUSE
+   - SNOWFLAKE_DATABASE
+
+The workflow in `.github/workflows/dbt_ci.yml` will run automatically on pushes.
+
+## Adding More Data
+
+Want more than 100k records?
+
+1. Download 2022-2024 data from Toronto Open Data:
+   - https://open.toronto.ca/dataset/ttc-subway-delay-data/
+   - https://open.toronto.ca/dataset/ttc-streetcar-delay-data/
+   - https://open.toronto.ca/dataset/ttc-bus-delay-data/
+
+2. Place Excel files in `data/raw/`
+
+3. Convert to CSV:
+   ```bash
+   python scripts/convert_excel_to_csv.py
+   ```
+
+4. Reload:
+   ```bash
+   dbt seed --full-refresh
+   dbt build
+   ```
 
 ## Troubleshooting
 
-### Issue: dbt debug fails
+**dbt debug fails**
+- Check environment variables are set
+- Verify Snowflake credentials
+- Make sure profiles.yml is in ~/.dbt/
 
-**Solution:**
+**Seed takes forever**
+- Normal for 100k records, takes a few minutes
+- Increase Snowflake warehouse size if needed
+
+**Tests fail**
+- Check `target/run_results.json` for details
+- Failed tests store results in test_failures schema
+
+**Connection timeout**
+- Check Snowflake account identifier format: `account.region`
+- Verify warehouse is running
+
+## Common Commands
+
 ```bash
-# Check environment variables
-echo $SNOWFLAKE_ACCOUNT
-echo $SNOWFLAKE_USER
+# List all models
+dbt list
 
-# Verify ~/.dbt/profiles.yml exists
-cat ~/.dbt/profiles.yml
+# Run specific model
+dbt run --select fct_daily_delays_by_type
 
-# Test Snowflake connection manually
-python -c "import snowflake.connector; print('Connection library installed')"
+# Test specific model
+dbt test --select stg_ttc_all_delays
+
+# Compile SQL (see what dbt generates)
+dbt compile
+
+# Clean up
+dbt clean
 ```
 
-### Issue: dbt seed takes too long
+## Performance Tips
 
-**Solution:**
-```bash
-# Generate smaller dataset first
-python scripts/generate_ttc_data.py 100000
+- Use `XSMALL` warehouse for development (cheaper)
+- Enable `AUTO_SUSPEND` to minimize costs
+- Run `dbt run --select marts` to only rebuild marts
+- Use `--full-refresh` flag when data changes significantly
 
-# Or increase Snowflake warehouse size
-# In Snowflake: ALTER WAREHOUSE COMPUTE_WH SET WAREHOUSE_SIZE = 'SMALL';
-```
-
-### Issue: GitHub Actions fails
-
-**Solution:**
-- Verify all secrets are set correctly in GitHub
-- Check that secret names match exactly (case-sensitive)
-- Review workflow logs in GitHub Actions tab
-
-## Next Steps
-
-1. **Customize for Your Resume**
-   - Update README.md with your GitHub username
-   - Add your LinkedIn profile
-   - Take screenshots of dbt docs for your portfolio
-
-2. **Add More Features**
-   - Create additional analyses
-   - Add more tests
-   - Implement dbt exposures for BI dashboards
-
-3. **Optimize Further**
-   - Experiment with different clustering keys
-   - Implement data partitioning
-   - Add snapshot models for slowly changing dimensions
-
-## Resources
-
-- [dbt Documentation](https://docs.getdbt.com/)
-- [Snowflake Documentation](https://docs.snowflake.com/)
-- [dbt Best Practices](https://docs.getdbt.com/guides/best-practices)
-- [Snowflake Clustering Guide](https://docs.snowflake.com/en/user-guide/tables-clustering-keys)
-
-## Support
-
-If you encounter issues:
-1. Check the troubleshooting section above
-2. Review dbt logs in `logs/dbt.log`
-3. Open an issue on GitHub
-4. Search dbt Slack community
-
----
-
-Good luck with your project! 🚀
-
+That's it. Should be straightforward to get running locally or on Snowflake.

@@ -1,0 +1,58 @@
+version: 2
+
+sources:
+  - name: raw
+    description: Raw TTC delay data from Toronto Open Data Portal
+    database: TTC_ANALYTICS
+    schema: raw
+    tables:
+      - name: ttc_subway_delays
+        description: >
+          Real subway delay data from Toronto Transit Commission.
+          Source: https://open.toronto.ca/dataset/ttc-subway-delay-data/
+        columns:
+          - name: date
+            description: Date of delay incident
+          - name: time
+            description: Time of delay incident
+          - name: station
+            description: Station where delay occurred
+          - name: code
+            description: TTC delay code
+          - name: min_delay
+            description: Delay duration in minutes
+          - name: line
+            description: Subway line
+            
+      - name: ttc_bus_delays
+        description: >
+          Real bus delay data from Toronto Transit Commission.
+          Source: https://open.toronto.ca/dataset/ttc-bus-delay-data/
+        columns:
+          - name: date
+            description: Date of delay incident
+          - name: route
+            description: Bus route number
+          - name: location
+            description: Location of incident
+          - name: incident
+            description: Delay cause/description
+          - name: min_delay
+            description: Delay duration in minutes
+            
+      - name: ttc_streetcar_delays
+        description: >
+          Real streetcar delay data from Toronto Transit Commission.
+          Source: https://open.toronto.ca/dataset/ttc-streetcar-delay-data/
+        columns:
+          - name: date
+            description: Date of delay incident
+          - name: line
+            description: Streetcar route
+          - name: location
+            description: Location of incident
+          - name: incident
+            description: Delay cause/description
+          - name: min_delay
+            description: Delay duration in minutes
+

@@ -6,4 +6,6 @@ faker==20.1.0
 python-dotenv==1.0.0
 sqlfluff==3.0.0
 sqlfluff-templater-dbt==3.0.0
+requests==2.32.5
+openpyxl==3.1.2
 

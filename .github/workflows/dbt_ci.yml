@@ -1,4 +1,4 @@
-name: dbt CI/CD Pipeline
+name: dbt CI/CD
 
 on:
   push:
@@ -8,7 +8,7 @@ on:
 
 jobs:
   dbt-test:
-    name: dbt Build and Test
+    name: Build and Test
     runs-on: ubuntu-latest
 
     env:
@@ -17,8 +17,8 @@ jobs:
       SNOWFLAKE_USER: ${{ secrets.SNOWFLAKE_USER }}
       SNOWFLAKE_PASSWORD: ${{ secrets.SNOWFLAKE_PASSWORD }}
       SNOWFLAKE_ROLE: ${{ secrets.SNOWFLAKE_ROLE }}
-      SNOWFLAKE_WAREHOUSE: ${{ secrets.SNOWFLAKE_WAREHOUSE }}
-      SNOWFLAKE_DATABASE: ${{ secrets.SNOWFLAKE_DATABASE }}
+      SNOWFLAKE_WAREHOUSE: COMPUTE_WH
+      SNOWFLAKE_DATABASE: TTC_ANALYTICS
 
     steps:
       - name: Checkout code
@@ -32,11 +32,8 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install --upgrade pip
           pip install -r requirements.txt
-
-      - name: Install dbt packages
-        run: dbt deps
+          dbt deps
 
       - name: Check dbt version
         run: dbt --version
@@ -44,28 +41,17 @@ jobs:
       - name: Run dbt debug
         run: dbt debug --target dev
 
-      - name: Run dbt compile
+      - name: Compile models
         run: dbt compile --target dev
 
-      - name: Run dbt build (models + tests)
+      - name: Run models and tests
         run: dbt build --target dev --full-refresh
 
-      - name: Generate dbt docs
+      - name: Generate docs
         run: dbt docs generate --target dev
 
-      - name: Upload dbt artifacts
-        uses: actions/upload-artifact@v3
-        if: always()
-        with:
-          name: dbt-artifacts
-          path: |
-            target/manifest.json
-            target/run_results.json
-            target/catalog.json
-            target/index.html
-
-  sqlfluff-lint:
-    name: SQLFluff Linting
+  lint:
+    name: SQL Linting
     runs-on: ubuntu-latest
 
     steps:
@@ -78,17 +64,15 @@ jobs:
           python-version: '3.11'
 
       - name: Install SQLFluff
-        run: |
-          pip install sqlfluff sqlfluff-templater-dbt
+        run: pip install sqlfluff sqlfluff-templater-dbt
 
-      - name: Lint SQL files
-        run: |
-          sqlfluff lint models/ --dialect snowflake || true
+      - name: Lint SQL
+        run: sqlfluff lint models/ --dialect snowflake || true
 
-  deploy-prod:
+  deploy:
     name: Deploy to Production
     runs-on: ubuntu-latest
-    needs: [dbt-test, sqlfluff-lint]
+    needs: [dbt-test, lint]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
 
     env:
@@ -97,8 +81,8 @@ jobs:
       SNOWFLAKE_USER: ${{ secrets.SNOWFLAKE_USER }}
       SNOWFLAKE_PASSWORD: ${{ secrets.SNOWFLAKE_PASSWORD }}
       SNOWFLAKE_ROLE: ${{ secrets.SNOWFLAKE_ROLE }}
-      SNOWFLAKE_WAREHOUSE: ${{ secrets.SNOWFLAKE_WAREHOUSE }}
-      SNOWFLAKE_DATABASE: ${{ secrets.SNOWFLAKE_DATABASE }}
+      SNOWFLAKE_WAREHOUSE: COMPUTE_WH
+      SNOWFLAKE_DATABASE: TTC_ANALYTICS
 
     steps:
       - name: Checkout code
@@ -113,15 +97,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip install -r requirements.txt
+          dbt deps
 
-      - name: Install dbt packages
-        run: dbt deps
-
-      - name: Deploy to Production
+      - name: Deploy to production
         run: dbt build --target prod
-
-      - name: Generate and deploy docs
-        run: |
-          dbt docs generate --target prod
-          echo "Documentation generated successfully"
-
