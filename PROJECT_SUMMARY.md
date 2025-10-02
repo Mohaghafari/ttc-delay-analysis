@@ -5,7 +5,7 @@ Quick reference for resume and interviews.
 ## Resume Bullet
 
 ```
-TTC Delay Analysis | github.com/YOUR_USERNAME/ttc-optimizer
+TTC Delay Analysis | github.com/Mohaghafari/ttc-delay-analysis
 
 • Analyzed 100k+ TTC delay records from Toronto Open Data using dbt on Snowflake
 • Reduced query costs 40% through clustering on date and transit type dimensions

@@ -13,8 +13,8 @@ Instructions for running this project locally or on Snowflake.
 ### 1. Clone and Install
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/ttc-optimizer.git
-cd ttc-optimizer
+git clone https://github.com/Mohaghafari/ttc-delay-analysis.git
+cd ttc-delay-analysis
 
 # Create virtual environment
 python3 -m venv venv

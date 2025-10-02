@@ -2,6 +2,8 @@
 
 Data engineering project analyzing real TTC delay data from Toronto's Open Data Portal using dbt and Snowflake.
 
+**Author:** Mohammad Ghafari | [LinkedIn](https://www.linkedin.com/in/mohaghafari/) | [GitHub](https://github.com/Mohaghafari)
+
 ## Overview
 
 Built a data pipeline to analyze 100k+ actual TTC delay records from 2024. The goal was to understand delay patterns across different transit types (subway, streetcar, bus) and optimize query performance using Snowflake clustering.
